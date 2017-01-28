@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <cmath>
-#include <float.h>
+#include <utility>
 #include <queue>
 #include <fstream>
 using namespace std;
@@ -34,8 +34,8 @@ struct Rect{
     }
 
     void toString(){
-        printf("start %d %d\n",x1,y1);
-        printf("end   %d %d\n",x2,y2);
+        printf("%d\t%d",y1,x1);
+        printf("\t%d\t%d\n",y2,x2);
     }
 };
 
@@ -53,29 +53,42 @@ bool containsEnoughIngredients(Rect& area){
     return mush >= minIngredient && tom >= minIngredient;
 }
 
-double ratio(Rect &area){
+/*
+pair<int,int> ratio(Rect &area){
     int mush = 0, tom = 0;
     for(int x = area.x1; x <= area.x2;x++)
-        for(int y = area.y1; y < area.y2;y++)
+        for(int y = area.y1; y <= area.y2;y++)
             pizza[y][x] == 'M' ? mush++ : tom++;
+    return make_pair(mush,tom);
+}
+*/
 
-    if(mush == 0) return DBL_MAX;
-    if(tom  == 0) return DBL_MIN;
+void printDiv(){
+    puts("------------------------");
+}
 
-    return mush/double(tom);
+int score(Rect &one,Rect &two){
+    int score1 = 0,score2 = 0,rectSize;
+
+    if(containsEnoughIngredients(one)) score1 += 10;
+    if(containsEnoughIngredients(two)) score2 += 10;
+    if((rectSize = size(one)) <= maxRectSize) score1 *= rectSize;
+    if((rectSize = size(two)) <= maxRectSize) score2 *= rectSize;
+
+    return score1 * score2;
 }
 
 Rect *splitRegion(Rect& area){
     Rect *optimalRect = new Rect[2];
-    double optimalDiff = DBL_MAX;
+    int maxScore = INT32_MIN;
 
     for(int x = area.x1;x < area.x2;x++){
         Rect one(area.x1, area.y1,x,area.y2);
         Rect two(x+1, area.y1,area.x2,area.y2);
-        double ratioOne = ratio(one),ratioTwo = ratio(two);
+        int value = score(one,two);
 
-        if(abs(ratioOne-ratioTwo) < optimalDiff){
-            optimalDiff = abs(ratioOne-ratioTwo);
+        if(value > maxScore){
+            maxScore = value;
             *optimalRect = one;
             *(optimalRect + 1) = two;
         }
@@ -84,10 +97,10 @@ Rect *splitRegion(Rect& area){
     for(int y = area.y1;y < area.y2;y++){
         Rect one(area.x1,area.y1,area.x2,y);
         Rect two(area.x1,y+1,area.x2,area.y2);
-        double ratioOne = ratio(one),ratioTwo = ratio(two);
+        int value = score(one,two);
 
-        if(abs(ratioOne-ratioTwo) < optimalDiff){
-            optimalDiff = abs(ratioOne-ratioTwo);
+        if(value > maxScore){
+            maxScore = value;
             *optimalRect = one;
             *(optimalRect + 1) = two;
         }
@@ -116,7 +129,7 @@ int main(){
 
         if(!containsEnoughIngredients(*tmp))
             continue;
-        if(size(*tmp) < maxRectSize){
+        if(size(*tmp) <= maxRectSize){
             completed.push(tmp);
         }else{
             Rect *newRect = splitRegion(*tmp);
@@ -129,8 +142,7 @@ int main(){
         Rect *tmp = completed.front();
         completed.pop();
 
-        printf("%d\t%d\n",tmp->x1,tmp->y1);
-        printf("%d\t%d\n",tmp->x2,tmp->y2);
+        tmp->toString();
     }
     return 0;
 }
