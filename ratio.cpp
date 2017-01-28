@@ -3,6 +3,7 @@
 #include <utility>
 #include <queue>
 #include <fstream>
+#include <iostream>
 using namespace std;
 
 char pizza[1000][1000];
@@ -34,8 +35,8 @@ struct Rect{
     }
 
     void toString(){
-        printf("%d\t%d",y1,x1);
-        printf("\t%d\t%d\n",y2,x2);
+        printf("%d %d",y1,x1);
+        printf(" %d %d\n",y2,x2);
     }
 };
 
@@ -110,7 +111,7 @@ Rect *splitRegion(Rect& area){
 }
 
 int main(){
-    ifstream stream("input.txt");
+    ifstream stream("big.in");
     stream>>rows>>cols>>minIngredient>>maxRectSize;
     rows -= 1;
     cols -= 1;
@@ -138,6 +139,7 @@ int main(){
         }
     }
 
+    cout<<completed.size()<<"\n";
     while(!completed.empty()){
         Rect *tmp = completed.front();
         completed.pop();
