@@ -7,6 +7,9 @@
 using namespace std;
 
 char pizza[1000][1000];
+int  mushCount[1000][1000];
+int  tomCount[1000][1000];
+
 int maxRectSize,minIngredient;
 int rows,cols;
 
@@ -40,32 +43,40 @@ struct Rect{
     }
 };
 
+void genCountMatrix(int summationMap[1000][1000],
+    Rect& area,char charToCount){
+    for(int y = 0; y <= area.y2;y++){
+        int sum = 0;
+        for(int x = 0; x <= area.x2;x++){
+            sum += pizza[y][x] == charToCount ? 1 : 0;
+            summationMap[y][x] = sum;
+        }
+    }
+}
+
 int size(Rect& area){
     int height = abs(area.y2 - area.y1) + 1;
     int width  = abs(area.x1 - area.x2) + 1;
     return height * width;
 }
 
+int countIngredient(int aggrTable[1000][1000],Rect& area){
+    int total = 0;
+    for(int y = area.y1; y <= area.y2;y++)
+        total += aggrTable[y][area.x2];
+
+    int outsideRect = area.x1 - 1;
+    if(outsideRect > -1)
+        for(int y = area.y1; y <= area.y2;y++)
+            total -= aggrTable[y][outsideRect];
+
+    return total;
+}
+
 bool containsEnoughIngredients(Rect& area){
-    int mush = 0, tom = 0;
-    for(int x = area.x1; x <= area.x2;x++)
-        for(int y = area.y1; y <= area.y2;y++)
-            pizza[y][x] == 'M' ? mush++ : tom++;
-    return mush >= minIngredient && tom >= minIngredient;
-}
-
-/*
-pair<int,int> ratio(Rect &area){
-    int mush = 0, tom = 0;
-    for(int x = area.x1; x <= area.x2;x++)
-        for(int y = area.y1; y <= area.y2;y++)
-            pizza[y][x] == 'M' ? mush++ : tom++;
-    return make_pair(mush,tom);
-}
-*/
-
-void printDiv(){
-    puts("------------------------");
+    int mush = countIngredient(mushCount,area),
+      tom = countIngredient(tomCount,area);
+      return mush >= minIngredient && tom >= minIngredient;
 }
 
 int score(Rect &one,Rect &two){
@@ -123,6 +134,9 @@ int main(){
 
     queue<Rect*> toProcess,completed;
     toProcess.push(new Rect(0,0,cols,rows));
+
+    genCountMatrix(mushCount,*toProcess.front(),'M');
+    genCountMatrix(tomCount,*toProcess.front(),'T');
 
     while (!toProcess.empty()) {
         Rect *tmp = toProcess.front();
